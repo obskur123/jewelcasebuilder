@@ -1,0 +1,31 @@
+{
+  "name": "jewelcasebuilder",
+  "version": "1.0.0",
+  "description": "Browser-based CD jewel case builder: 6 page folder booklet, traycard and disc with live 3D preview",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "db:generate": "drizzle-kit generate"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^18.0.9",
+    "drizzle-orm": "^0.45.4",
+    "express": "^5.3.0",
+    "fflate": "^0.8.3",
+    "jspdf": "^4.2.1",
+    "multer": "^2.5.0",
+    "pdfjs-dist": "^6.4.299",
+    "pg": "^8.23.1",
+    "three": "^0.186.1"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "private": true,
+  "devDependencies": {
+    "drizzle-kit": "^0.31.11"
+  }
+}

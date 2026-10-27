@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{TITLE}}</title>
+    <meta name="description" content="A view-only 3D jewel case. Made with Jewel Case Builder." />
+    <meta property="og:title" content="{{TITLE}}" />
+    <meta property="og:image" content="{{OG_IMAGE}}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;700&family=Space+Mono:wght@400;700&display=swap"
+    />
+    <link rel="stylesheet" href="/css/app.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/vendor/three/build/three.module.js",
+          "three/addons/": "/vendor/three/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module" src="/js/share-view.js"></script>
+  </head>
+  <body class="share-view">
+    <div class="preview" id="preview" data-share-id="{{SHARE_ID}}" role="main" aria-label="3D preview">
+      <canvas id="glCanvas"></canvas>
+      <div class="preview-top">
+        <div class="preview-presets" id="presets">
+          <span class="tag">3D</span>
+          <button data-preset="closed">Closed</button>
+          <button data-preset="back">Back</button>
+          <button data-preset="open">Open case</button>
+          <button data-preset="booklet">Booklet</button>
+          <button data-preset="disc">Disc</button>
+          <button data-preset="exploded">Exploded</button>
+        </div>
+        <div class="preview-actions">
+          <span id="shareTitle" class="share-title"></span>
+          <button id="mockupBtn" class="btn small">Save mockup PNG</button>
+          <button id="deleteShareBtn" class="btn small" hidden>Delete share</button>
+          <a class="btn small" href="/" id="madeWith">Jewel Case Builder</a>
+        </div>
+      </div>
+      <div class="preview-controls">
+        <label class="range">Lid <input autocomplete="off" type="range" id="lidRange" min="0" max="100" value="0" /></label>
+        <label class="range">Unfold <input autocomplete="off" type="range" id="foldRange" min="0" max="100" value="0" /></label>
+        <label class="chk"><input autocomplete="off" type="checkbox" id="bookletOut" /> Booklet out</label>
+        <label class="chk"><input autocomplete="off" type="checkbox" id="flipBooklet" /> Flip</label>
+        <label class="chk"><input autocomplete="off" type="checkbox" id="discOut" /> Disc out</label>
+        <select autocomplete="off" id="trayColor" aria-label="Tray colour">
+          <option value="clear">Clear tray</option>
+          <option value="black">Black tray</option>
+        </select>
+        <label class="chk"><input autocomplete="off" type="checkbox" id="autoRotate" /> Spin</label>
+      </div>
+      <div class="preview-hint">View only · drag to orbit · scroll to zoom</div>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>

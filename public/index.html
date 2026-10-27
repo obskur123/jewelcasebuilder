@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Jewel Case Builder — design your CD jewel case in the browser</title>
+    <meta
+      name="description"
+      content="Build a print-ready CD jewel case: 6 page folder booklet, traycard and disc label, with a live 3D preview."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Bebas+Neue&family=Caveat:wght@400;700&family=IBM+Plex+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Inter:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Rubik+Mono+One&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Special+Elite&family=UnifrakturMaguntia&display=swap"
+    />
+    <link rel="stylesheet" href="/css/app.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/vendor/three/build/three.module.js",
+          "three/addons/": "/vendor/three/examples/jsm/"
+        }
+      }
+    </script>
+    <script src="/vendor/jspdf/jspdf.umd.min.js" defer></script>
+    <script type="module" src="/js/main.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" title="Jewel Case Builder">
+        <span class="brand-disc" aria-hidden="true"></span>
+        <span>JEWEL CASE<br /><b>BUILDER</b></span>
+      </a>
+      <input autocomplete="off" id="projectName" class="project-name" placeholder="Untitled album" maxlength="80" aria-label="Project name" />
+      <span id="saveStatus" class="save-status" data-status="unsaved">Not saved yet</span>
+      <div class="top-actions">
+        <button id="undoBtn" class="btn ghost" title="Undo (⌘/Ctrl+Z)" disabled>Undo</button>
+        <button id="redoBtn" class="btn ghost" title="Redo (⇧⌘/Ctrl+Shift+Z)" disabled>Redo</button>
+        <button id="newBtn" class="btn ghost" title="Start a new project">New</button>
+        <button id="openZipBtn" class="btn ghost" title="Open a project .zip (or drop it anywhere on the page)">Open .zip</button>
+        <button id="saveZipBtn" class="btn" title="Download the design and all its images as one .zip">Save .zip</button>
+        <button id="previewBtn" class="btn" title="Open the 3D preview (3)">3D preview</button>
+        <button id="exportBtn" class="btn primary">Export print files</button>
+      </div>
+    </header>
+
+    <main class="app">
+      <nav class="parts" id="partsNav" aria-label="Panels"></nav>
+
+      <section class="workspace">
+        <div class="sheet-area" id="sheetArea">
+          <div class="sheet-bar">
+            <div class="sheet-tabs" id="sheetTabs" role="tablist"></div>
+            <div class="sheet-tools">
+              <label class="chk"><input autocomplete="off" type="checkbox" id="guidesToggle" checked /> Guides</label>
+              <label class="color-field" title="Sheet background colour">
+                Paper <input autocomplete="off" type="color" id="sheetBg" value="#ffffff" />
+              </label>
+              <button id="sheetUploadBtn" class="btn small">Upload finished sheet</button>
+            </div>
+          </div>
+          <div id="sheetNotice" class="sheet-notice" hidden></div>
+          <div class="sheet-stage" id="sheetStage">
+            <canvas id="sheetCanvas"></canvas>
+          </div>
+          <div class="sheet-foot">
+            <div class="legend">
+              <span class="lg bleed">Bleed</span><span class="lg trim">Trim</span><span class="lg safety">Safety</span
+              ><span class="lg fold">Fold</span>
+            </div>
+            <div class="sheet-meta" id="sheetMeta"></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="inspector" id="inspector" aria-label="Panel editor"></aside>
+    </main>
+
+    <div class="preview" id="preview" role="dialog" aria-modal="true" aria-label="3D preview" hidden>
+      <canvas id="glCanvas"></canvas>
+      <div class="preview-top">
+        <div class="preview-presets" id="presets">
+          <span class="tag">3D</span>
+          <button data-preset="closed">Closed</button>
+          <button data-preset="back">Back</button>
+          <button data-preset="open">Open case</button>
+          <button data-preset="booklet">Booklet</button>
+          <button data-preset="disc">Disc</button>
+          <button data-preset="exploded">Exploded</button>
+        </div>
+        <div class="preview-actions">
+          <button id="share3dBtn" class="btn small" title="Publish a view-only 3D link">Share 3D</button>
+          <button id="mockupBtn" class="btn small">Save mockup PNG</button>
+          <button id="previewEditBtn" class="btn small primary" title="Close the preview and edit this panel"></button>
+          <button id="previewCloseBtn" class="btn small" title="Back to the editor (Esc)">Close ✕</button>
+        </div>
+      </div>
+      <div class="preview-controls">
+        <label class="range">Lid <input autocomplete="off" type="range" id="lidRange" min="0" max="100" value="0" /></label>
+        <label class="range">Unfold <input autocomplete="off" type="range" id="foldRange" min="0" max="100" value="0" /></label>
+        <label class="chk"><input autocomplete="off" type="checkbox" id="bookletOut" /> Booklet out</label>
+        <label class="chk"><input autocomplete="off" type="checkbox" id="flipBooklet" /> Flip</label>
+        <label class="chk"><input autocomplete="off" type="checkbox" id="discOut" /> Disc out</label>
+        <select autocomplete="off" id="trayColor" aria-label="Tray colour">
+          <option value="clear">Clear tray</option>
+          <option value="black">Black tray</option>
+        </select>
+        <label class="chk"><input autocomplete="off" type="checkbox" id="autoRotate" /> Spin</label>
+        <label class="chk" title="When the preview opens, fly to the panel you were editing"
+          ><input autocomplete="off" type="checkbox" id="followSel" checked /> Open at selected panel</label
+        >
+      </div>
+      <div class="preview-hint">Drag to orbit · scroll to zoom · click a surface to pick it · Esc to close</div>
+    </div>
+
+    <dialog id="exportDialog" class="dialog">
+      <form method="dialog" id="exportForm">
+        <h2>Export print files</h2>
+        <fieldset>
+          <legend>Sheets</legend>
+          <div id="exportSheets" class="export-sheets"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Page size</legend>
+          <label class="radio"
+            ><input autocomplete="off" type="radio" name="pageSize" value="bleed" checked />
+            <span><b>Artwork + bleed</b> — print-ready, page = trim + 0.125" bleed each side.</span></label
+          >
+          <label class="radio"
+            ><input autocomplete="off" type="radio" name="pageSize" value="template" />
+            <span
+              ><b>Disc Makers template page</b> — artwork centred on the original CD600 / CDT100 / UD100 page size, for
+              their upload workflow.</span
+            ></label
+          >
+        </fieldset>
+        <label class="chk block"
+          ><input autocomplete="off" type="checkbox" name="guides" /> Draw guides (proof for checking only — don't send this to print)</label
+        >
+        <p class="fine">
+          Files are rendered at 300 DPI in RGB. Most replicators convert to CMYK; very saturated blues, greens and
+          oranges may print duller than on screen.
+        </p>
+        <div class="dialog-actions">
+          <span id="exportProgress" class="progress"></span>
+          <button value="cancel" class="btn ghost">Close</button>
+          <button type="button" id="exportPngBtn" class="btn">PNG files</button>
+          <button type="button" id="exportPdfBtn" class="btn primary">Download PDF</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="shareDialog" class="dialog">
+      <h2>Share 3D preview</h2>
+      <p class="fine">
+        Publishes a view-only link. Friends can orbit the case, not edit it. The print-resolution files stay on this computer.
+      </p>
+      <div id="shareForm">
+        <label class="share-field">
+          Title
+          <input autocomplete="off" id="shareTitleInput" maxlength="80" placeholder="Untitled album" />
+        </label>
+      </div>
+      <div id="shareResult" hidden>
+        <label class="share-field">
+          Link
+          <input autocomplete="off" id="shareUrl" readonly />
+        </label>
+        <p class="fine">Anyone with the link can view it. You can delete it later from this browser.</p>
+      </div>
+      <div class="dialog-actions">
+        <span id="shareProgress" class="progress"></span>
+        <button type="button" id="shareCloseBtn" class="btn ghost">Close</button>
+        <button type="button" id="shareCopyBtn" class="btn" hidden>Copy link</button>
+        <button type="button" id="shareOpenBtn" class="btn" hidden>Open</button>
+        <button type="button" id="sharePublishBtn" class="btn primary">Publish</button>
+      </div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <input autocomplete="off" type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,application/pdf,.pdf" hidden />
+  </body>
+</html>
